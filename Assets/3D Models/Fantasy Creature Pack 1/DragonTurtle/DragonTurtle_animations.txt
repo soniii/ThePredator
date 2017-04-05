@@ -1,0 +1,24 @@
+walk		034 - 066
+stand 		102 - 147
+idle 		149 - 309
+roar 		311 - 401
+bite 1 		403 - 448
+bite 2 		450 - 495
+spit 		497 - 527
+breath fire 	529 - 619
+earth quake 	621 - 691
+hit 1 		693 - 723
+hit 2 		725 - 755
+death 		757 - 800
+
+polys: 4392
+tris: 6154
+verts: 3090
+bones: 41
+
+Note: please set Quality in Skinned Mesh Renderer to 4 Bones so the animations will be displayed correctly :D
+
+
+
+
+
