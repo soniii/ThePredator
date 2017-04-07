@@ -45,6 +45,8 @@ public class AgentBalanceUtil : MonoBehaviour {
 			Physics.Raycast (FrontLeft.position, Vector3.down, out lf, LayerMask.NameToLayer("Terrain"));
 			Physics.Raycast (FrontRight.position, Vector3.down, out rf, LayerMask.NameToLayer("Terrain"));
 
+			Debug.Log ("sonydb: backleft normal = " + lr.normal.x + ", " + lr.normal.y + ", " + lr.normal.z);
+
 			tmpUp = (lr.normal + rr.normal + lf.normal + rf.normal).normalized;
 			transform.rotation = Quaternion.Slerp (transform.rotation, Quaternion.LookRotation (tmpForward, tmpUp), Time.deltaTime * LerpRotationSpeed);
 

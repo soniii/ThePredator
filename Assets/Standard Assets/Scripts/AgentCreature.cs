@@ -48,9 +48,9 @@ public class AgentCreature : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider other) {
-		Debug.Log ("sonydb: Hit somebody");
+		//Debug.Log ("sonydb: Hit somebody");
 		if (other.tag == "Player" && !mTargets.Contains(other.gameObject)) {
-			Debug.Log ("sonydb: Add " + other.name);
+			//Debug.Log ("sonydb: Add " + other.name);
 			mTargets.Add (other.gameObject);
 		}
 	}
@@ -109,12 +109,12 @@ public class AgentCreature : MonoBehaviour {
 			case State.horn:
 				//Debug.Log ("sonydb: Charging.. " + mNavMeshAgent.remainingDistance);
 				if (!mHornAttacking) {
-					Debug.Log ("sonydb: Attack...");
+					//Debug.Log ("sonydb: Attack...");
 					mNavMeshAgent.SetDestination (mTargets [mCurrentTarget].transform.position);
 					mNavMeshAgent.speed = 14f;
 					mHornAttacking = true;
 				} else if (mHornAttacking && mNavMeshAgent.remainingDistance <= mNavMeshAgent.stoppingDistance) {
-					Debug.Log ("sonydb: switching..");
+					//Debug.Log ("sonydb: switching..");
 					mHornAttacking = false;
 					mState = State.idle;
 				}
