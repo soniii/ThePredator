@@ -1,68 +1,111 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PlayerController : MonoBehaviour {
 
 	// Public variables
 	public float mSpeed = 1f;
+	public float mJumpForce = 100f;
 	public float mTurnSensitivity = 15f;
 
 	// Private
+	private Transform mCameraAnchor;
 	private Vector3 mBottomAnchor;
 	private RaycastHit mGround;
+	private Vector3 mCurrentDirection;
 	private Vector3 mForward;
 	private Vector3 mRight;
 
 	private Quaternion mOriginalRotation;
+	private Quaternion mCameraRotation;
 	private float mRotationX;
+	private float mRotationY;
+
+	private bool mIsGrounded;
+	private float mJumpVelocity;
 
 	void Start () {
 		gameObject.tag = "Player";
+		mCameraAnchor = transform.Find ("CameraAnchor");
+		if (mCameraAnchor) {
+			Debug.Log ("sonydb: found anchor");
+		}
 		mBottomAnchor = transform.position;
 
+		mCurrentDirection = transform.forward;
 		mForward = transform.forward;
 		mRight = Vector3.Cross (transform.forward, transform.up).normalized;
-		mRotationX = 0f;
+
 		mOriginalRotation = transform.localRotation;
+		mCameraRotation = mCameraAnchor.localRotation;
+		mRotationX = 0f;
+		mRotationY = 0f;
+
+		mIsGrounded = false;
+		mJumpVelocity = 0f;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		mBottomAnchor = transform.position;
 		mRotationX += Input.GetAxis ("Mouse X") * mTurnSensitivity;
+		mRotationY -= Input.GetAxis ("Mouse Y") * mTurnSensitivity / 2f;
 		mRotationX = ClampAngle (mRotationX);
+		mRotationY = Mathf.Clamp (mRotationY, -40f, 20f);
 		Quaternion xQuaternion = Quaternion.AngleAxis (mRotationX, Vector3.up);
+		Quaternion yQuaternion = Quaternion.AngleAxis (mRotationY, Vector3.right);
 
 		transform.localRotation = mOriginalRotation * xQuaternion;
-		//Debug.Log ("sonydb: forward = " + transform.forward.x + ", " + transform.forward.y + ", " + transform.forward.z);
+		mCameraAnchor.localRotation = mCameraRotation * yQuaternion;
+
 
 		mRight = Vector3.Cross (transform.up, transform.forward).normalized;
 		mForward = transform.forward;
-		if (Physics.Raycast (mBottomAnchor, Vector3.down, out mGround, LayerMask.NameToLayer ("Terrain"))) {
-			//Debug.Log ("sonydb: object name = " + mGround.collider.gameObject.name);
-			//Debug.Log ("sonydb: anchor hit normal: " + mGround.normal.x + ", " + mGround.normal.y + ", " + mGround.normal.z);
+		if (Physics.Raycast (mBottomAnchor, Vector3.down, out mGround, 1f, LayerMask.GetMask("Terrain"))) {
 			mRight = Vector3.Cross (mGround.normal, transform.forward).normalized;
-			//Debug.Log ("sonydb: right: " + mRight.x + ", " + mRight.y + ", " + mRight.z);
 			mForward = Vector3.Cross (mRight, mGround.normal).normalized;
-			//Debug.Log ("sonydb: forward: " + mForward.x + ", " + mForward.y + ", " + mForward.z);
-		}
-		Debug.DrawRay (mBottomAnchor + Vector3.up * 0.1f, Vector3.down, Color.red);
-
-		if (Input.GetKey (KeyCode.UpArrow)) {
-			transform.position += mForward * mSpeed;
+			mIsGrounded = true;
+		} else {
+			mIsGrounded = false;
 		}
 
-		if (Input.GetKey (KeyCode.RightArrow)) {
-			transform.position += mRight * mSpeed;
+		Debug.DrawRay (mBottomAnchor, Vector3.down, Color.red);
+
+		if (mIsGrounded) {
+			mJumpVelocity = 0f;
+			mCurrentDirection = new Vector3 (0f, 0f, 0f);
+			Vector3 tmpDirection = new Vector3 (0f, 0f, 0f);
+			if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) {
+				tmpDirection = tmpDirection + mForward;
+			}
+
+			if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) {
+				tmpDirection = tmpDirection + mRight;
+			}
+
+			if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) {
+				tmpDirection = tmpDirection + mRight * (-1f);
+			}
+
+			if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) {
+				tmpDirection = tmpDirection + mForward * (-1f);
+			}
+
+			if (Input.GetKey (KeyCode.Space) && mJumpVelocity == 0f) {
+				mCurrentDirection = (new Vector3(tmpDirection.x, 0f, tmpDirection.z)).normalized;
+				mJumpVelocity += 10f;
+			}
+
+			tmpDirection.Normalize ();
+			transform.position += tmpDirection * mSpeed * Time.deltaTime;
+
+		} else {
+			// Fall velocity
+			mJumpVelocity -= 40f * Time.deltaTime;
 		}
 
-		if (Input.GetKey (KeyCode.LeftArrow)) {
-			transform.position += mRight * (-mSpeed);
-		}
-
-		if (Input.GetKey (KeyCode.DownArrow)) {
-			transform.position += mForward * (-mSpeed);
-		}
+		transform.position += (Vector3.up * mJumpVelocity + mCurrentDirection * mSpeed) * Time.deltaTime;
 	}
 
 	public static float ClampAngle (float angle) {

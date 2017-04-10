@@ -9,7 +9,6 @@ public class AgentBalanceUtil : MonoBehaviour {
 	public Transform FrontRight;
 
 	public float LerpRotationSpeed = 15f;
-	public GameObject Target = null;
 
 	// Private
 	private NavMeshAgent mNavMeshAgent = null;
@@ -44,8 +43,6 @@ public class AgentBalanceUtil : MonoBehaviour {
 			Physics.Raycast (BackRight.position, Vector3.down, out rr, LayerMask.NameToLayer("Terrain"));
 			Physics.Raycast (FrontLeft.position, Vector3.down, out lf, LayerMask.NameToLayer("Terrain"));
 			Physics.Raycast (FrontRight.position, Vector3.down, out rf, LayerMask.NameToLayer("Terrain"));
-
-			Debug.Log ("sonydb: backleft normal = " + lr.normal.x + ", " + lr.normal.y + ", " + lr.normal.z);
 
 			tmpUp = (lr.normal + rr.normal + lf.normal + rf.normal).normalized;
 			transform.rotation = Quaternion.Slerp (transform.rotation, Quaternion.LookRotation (tmpForward, tmpUp), Time.deltaTime * LerpRotationSpeed);
