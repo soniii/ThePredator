@@ -18,6 +18,8 @@ public class AgentCreature : MonoBehaviour {
 		hurt,
 	};
 
+	public float mWalkSpeed = 3f;
+	public float mRunSpeed = 14f;
 	public float MaxStateDuration = 10f;
 
 	// Private
@@ -50,7 +52,7 @@ public class AgentCreature : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider other) {
-		//Debug.Log ("sonydb: Hit somebody");
+		Debug.Log ("sonydb: Hit somebody");
 		if (other.tag == "Player" && !mTargets.Contains(other.gameObject)) {
 			//Debug.Log ("sonydb: Add " + other.name);
 			mTargets.Add (other.gameObject);
@@ -99,7 +101,7 @@ public class AgentCreature : MonoBehaviour {
 				break;
 			case State.walk:
 				//Debug.Log ("sonydb: Walking..");
-				mNavMeshAgent.speed = 3f;
+				mNavMeshAgent.speed = mWalkSpeed;
 				if (Time.time - mTimer > MaxStateDuration) {
 					// Switch to Idle
 					mTimer = Time.time;
@@ -113,7 +115,7 @@ public class AgentCreature : MonoBehaviour {
 				if (!mHornAttacking) {
 					//Debug.Log ("sonydb: Attack...");
 					mNavMeshAgent.SetDestination (mTargets [mCurrentTarget].transform.position);
-					mNavMeshAgent.speed = 14f;
+					mNavMeshAgent.speed = mRunSpeed;
 					mHornAttacking = true;
 				} else if (mHornAttacking && mNavMeshAgent.remainingDistance <= mNavMeshAgent.stoppingDistance) {
 					//Debug.Log ("sonydb: switching..");

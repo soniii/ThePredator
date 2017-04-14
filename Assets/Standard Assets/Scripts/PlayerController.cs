@@ -8,11 +8,15 @@ public class PlayerController : MonoBehaviour {
 	public float mSpeed = 1f;
 	public float mJumpForce = 100f;
 	public float mTurnSensitivity = 15f;
+	public float mBaseOffset = 0.25f;
 
 	// Private
+	private Rigidbody mRigidBody;
+
 	private Transform mCameraAnchor;
 	private Vector3 mBottomAnchor;
-	private RaycastHit mGround;
+
+	private Vector3 mForwardVelocity;
 	private Vector3 mCurrentDirection;
 	private Vector3 mForward;
 	private Vector3 mRight;
@@ -25,14 +29,23 @@ public class PlayerController : MonoBehaviour {
 	private bool mIsGrounded;
 	private float mJumpVelocity;
 
+	void OnCollisionEnter(Collision col) {
+		Debug.Log ("sonydb: Player hit");
+	}
+
 	void Start () {
+		// Initialize
 		gameObject.tag = "Player";
+		mRigidBody = GetComponent<Rigidbody> ();
+		mRigidBody.constraints = RigidbodyConstraints.FreezeAll;
+
 		mCameraAnchor = transform.Find ("CameraAnchor");
 		if (mCameraAnchor) {
 			Debug.Log ("sonydb: found anchor");
 		}
-		mBottomAnchor = transform.position;
+		mBottomAnchor = transform.position + new Vector3(0f, -mBaseOffset, 0f);
 
+		mForwardVelocity = transform.forward;
 		mCurrentDirection = transform.forward;
 		mForward = transform.forward;
 		mRight = Vector3.Cross (transform.forward, transform.up).normalized;
@@ -48,7 +61,7 @@ public class PlayerController : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		mBottomAnchor = transform.position;
+		mBottomAnchor = transform.position + new Vector3(0f, -mBaseOffset, 0f);
 		mRotationX += Input.GetAxis ("Mouse X") * mTurnSensitivity;
 		mRotationY -= Input.GetAxis ("Mouse Y") * mTurnSensitivity / 2f;
 		mRotationX = ClampAngle (mRotationX);
@@ -62,50 +75,75 @@ public class PlayerController : MonoBehaviour {
 
 		mRight = Vector3.Cross (transform.up, transform.forward).normalized;
 		mForward = transform.forward;
-		if (Physics.Raycast (mBottomAnchor, Vector3.down, out mGround, 1f, LayerMask.GetMask("Terrain"))) {
+		RaycastHit mGround;
+		RaycastHit mFront;
+		bool mHitGround = Physics.Raycast (mBottomAnchor, Vector3.down, out mGround, 5.25f, LayerMask.GetMask("Terrain"));
+		if (mHitGround) {
 			mRight = Vector3.Cross (mGround.normal, transform.forward).normalized;
 			mForward = Vector3.Cross (mRight, mGround.normal).normalized;
-			mIsGrounded = true;
+			if (mGround.distance > 0.25f && mGround.distance < 0.6f) {
+				mIsGrounded = true;
+			} else {
+				mIsGrounded = false;
+			}
 		} else {
 			mIsGrounded = false;
 		}
 
-		Debug.DrawRay (mBottomAnchor, Vector3.down, Color.red);
+		Debug.DrawRay (mBottomAnchor, Vector3.down * 5f, Color.red);
 
 		if (mIsGrounded) {
 			mJumpVelocity = 0f;
-			mCurrentDirection = new Vector3 (0f, 0f, 0f);
-			Vector3 tmpDirection = new Vector3 (0f, 0f, 0f);
+			mForwardVelocity = new Vector3 (0f, 0f, 0f);
 			if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) {
-				tmpDirection = tmpDirection + mForward;
+				mForwardVelocity = mForwardVelocity + mForward;
 			}
 
 			if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) {
-				tmpDirection = tmpDirection + mRight;
+				mForwardVelocity = mForwardVelocity + mRight;
 			}
 
 			if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) {
-				tmpDirection = tmpDirection + mRight * (-1f);
+				mForwardVelocity = mForwardVelocity + mRight * (-1f);
 			}
 
 			if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) {
-				tmpDirection = tmpDirection + mForward * (-1f);
+				mForwardVelocity = mForwardVelocity + mForward * (-1f);
 			}
 
 			if (Input.GetKey (KeyCode.Space) && mJumpVelocity == 0f) {
-				mCurrentDirection = (new Vector3(tmpDirection.x, 0f, tmpDirection.z)).normalized;
+				mForwardVelocity = (new Vector3(mForwardVelocity.x, 0f, mForwardVelocity.z)).normalized;
 				mJumpVelocity += 10f;
 			}
 
-			tmpDirection.Normalize ();
-			transform.position += tmpDirection * mSpeed * Time.deltaTime;
-
+			mForwardVelocity.Normalize ();
 		} else {
+			//Debug.Log ("not grounded");
 			// Fall velocity
 			mJumpVelocity -= 40f * Time.deltaTime;
 		}
 
-		transform.position += (Vector3.up * mJumpVelocity + mCurrentDirection * mSpeed) * Time.deltaTime;
+		// Raycast in front
+		bool mHitFront = Physics.Raycast (mBottomAnchor, mForwardVelocity.normalized, out mFront, 5f);
+		Debug.DrawRay (mBottomAnchor, mForwardVelocity.normalized * 5f, Color.red);
+		if (mHitFront) {
+			if (mFront.distance - 0.25f < (mForwardVelocity * mSpeed * Time.deltaTime).magnitude) {
+				mForwardVelocity = new Vector3 (0f, 0f, 0f);
+			}
+		}
+
+		Vector3 velocity = (Vector3.up * mJumpVelocity + mForwardVelocity * mSpeed) * Time.deltaTime;
+		// Prevent falling through the ground
+		if (mIsGrounded || (mHitGround && mGround.distance - 0.25f >= -velocity.y) || (!mHitGround && transform.position.y > 5.25f)) {
+			//Debug.Log ("valid");
+			transform.position += velocity;
+		} else if (mHitGround && mGround.distance - 0.25f < -velocity.y) {
+			//Debug.Log ("adjust");
+			transform.position += new Vector3 (velocity.x, 0.26f - mGround.distance, velocity.z);
+		} else if (!mHitGround && transform.position.y < 5f) {
+			//Debug.Log ("reposition");
+			transform.position = new Vector3 (transform.position.x, mBaseOffset + Terrain.activeTerrain.SampleHeight (transform.position) + 0.5f, transform.position.z);
+		}
 	}
 
 	public static float ClampAngle (float angle) {

@@ -44,7 +44,11 @@ public class AgentBalanceUtil : MonoBehaviour {
 			Physics.Raycast (FrontLeft.position, Vector3.down, out lf, LayerMask.NameToLayer("Terrain"));
 			Physics.Raycast (FrontRight.position, Vector3.down, out rf, LayerMask.NameToLayer("Terrain"));
 
-			tmpUp = (lr.normal + rr.normal + lf.normal + rf.normal).normalized;
+			Vector3 lf_up = Vector3.Cross (rf.point - lf.point, lr.point - lf.point).normalized;
+			Vector3 rf_up = Vector3.Cross (rr.point - rf.point, lf.point - rf.point).normalized;
+			Vector3 rr_up = Vector3.Cross (lr.point - rr.point, rf.point - rr.point).normalized;
+			Vector3 lr_up = Vector3.Cross (rr.point - lr.point, lf.point - lr.point).normalized;
+			tmpUp = (lr_up + rr_up + lf_up + rf_up).normalized;
 			transform.rotation = Quaternion.Slerp (transform.rotation, Quaternion.LookRotation (tmpForward, tmpUp), Time.deltaTime * LerpRotationSpeed);
 
 			// Set the new position to actually move the agent
