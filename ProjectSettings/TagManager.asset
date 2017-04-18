@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Player
   - Monster
+  - Terrain
   layers:
   - Default
   - TransparentFX

@@ -2,6 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 
+//Player Character Behaviors:
+//- Player can rotate camera and move forward, backward, left, and right.
+//- Player should interact with the terrain, obstacles, and monsters as follow:
+//	- Player should never fall below the terrain.
+//	- Player should not be able to move up terrain past a certain slope.
+//	- Player should not be able to walk through obstacles and monsters.
+//	- Player has less priority in terms of movemments than monsters.
+//- Player is subjected to gravity.
+//- Player, upon collision with monster, either: stops, gets moved out of the way lightly, or gets pushed out of the way at a distance.
+
 public class PlayerController : MonoBehaviour {
 
 	// Public variables
@@ -28,9 +38,40 @@ public class PlayerController : MonoBehaviour {
 
 	private bool mIsGrounded;
 	private float mJumpVelocity;
+	private float mStunned;
 
-	void OnCollisionEnter(Collision col) {
-		Debug.Log ("sonydb: Player hit");
+	// Collision count
+	private List<GameObject> mObstacles;
+
+	// Public facing function for interaction
+	void Stun(float time) {
+		Debug.Log ("sonydb: Stunned...");
+		mStunned = time;
+	}
+
+	void OnTriggerEnter(Collider col) {
+		Debug.Log ("sonydb: Player hit " + col.transform.root.name);
+		if (col.gameObject.tag != "Terrain" && !mObstacles.Contains (col.gameObject)) {
+			Debug.Log ("sonydb: new one");
+		}
+		/*
+		if (col.tag != "Terrain" && !mObstacles.Contains(col.gameObject)) {
+			Debug.Log ("sonydb: player hit " + col.name);
+			mObstacles.Add (col.gameObject);
+		}
+		*/
+	}
+
+	void OnTriggerStay(Collider col) {
+	}
+
+	void OnTriggerExit(Collider col) {
+		/*
+		if (col.tag != "Terrain" && mObstacles.Contains(col.gameObject)) {
+			Debug.Log ("sonydb: left " + col.name);
+			mObstacles.Remove (col.gameObject);
+		}
+		*/
 	}
 
 	void Start () {
@@ -40,9 +81,6 @@ public class PlayerController : MonoBehaviour {
 		mRigidBody.constraints = RigidbodyConstraints.FreezeAll;
 
 		mCameraAnchor = transform.Find ("CameraAnchor");
-		if (mCameraAnchor) {
-			Debug.Log ("sonydb: found anchor");
-		}
 		mBottomAnchor = transform.position + new Vector3(0f, -mBaseOffset, 0f);
 
 		mForwardVelocity = transform.forward;
@@ -57,6 +95,8 @@ public class PlayerController : MonoBehaviour {
 
 		mIsGrounded = false;
 		mJumpVelocity = 0f;
+
+		mObstacles = new List<GameObject> ();
 	}
 	
 	// Update is called once per frame
@@ -92,35 +132,37 @@ public class PlayerController : MonoBehaviour {
 
 		Debug.DrawRay (mBottomAnchor, Vector3.down * 5f, Color.red);
 
-		if (mIsGrounded) {
+		if (mIsGrounded && mStunned <= 0f) {
 			mJumpVelocity = 0f;
 			mForwardVelocity = new Vector3 (0f, 0f, 0f);
-			if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey(KeyCode.W)) {
+			if (Input.GetKey (KeyCode.UpArrow) || Input.GetKey (KeyCode.W)) {
 				mForwardVelocity = mForwardVelocity + mForward;
 			}
 
-			if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey(KeyCode.D)) {
+			if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey (KeyCode.D)) {
 				mForwardVelocity = mForwardVelocity + mRight;
 			}
 
-			if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey(KeyCode.A)) {
+			if (Input.GetKey (KeyCode.LeftArrow) || Input.GetKey (KeyCode.A)) {
 				mForwardVelocity = mForwardVelocity + mRight * (-1f);
 			}
 
-			if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey(KeyCode.S)) {
+			if (Input.GetKey (KeyCode.DownArrow) || Input.GetKey (KeyCode.S)) {
 				mForwardVelocity = mForwardVelocity + mForward * (-1f);
 			}
 
 			if (Input.GetKey (KeyCode.Space) && mJumpVelocity == 0f) {
-				mForwardVelocity = (new Vector3(mForwardVelocity.x, 0f, mForwardVelocity.z)).normalized;
+				mForwardVelocity = (new Vector3 (mForwardVelocity.x, 0f, mForwardVelocity.z)).normalized;
 				mJumpVelocity += 10f;
 			}
 
 			mForwardVelocity.Normalize ();
-		} else {
+		} else if (!mIsGrounded) {
 			//Debug.Log ("not grounded");
 			// Fall velocity
 			mJumpVelocity -= 40f * Time.deltaTime;
+		} else if (mStunned > 0f) {
+			mStunned -= Time.deltaTime;
 		}
 
 		// Raycast in front
@@ -133,17 +175,16 @@ public class PlayerController : MonoBehaviour {
 		}
 
 		Vector3 velocity = (Vector3.up * mJumpVelocity + mForwardVelocity * mSpeed) * Time.deltaTime;
+
 		// Prevent falling through the ground
 		if (mIsGrounded || (mHitGround && mGround.distance - 0.25f >= -velocity.y) || (!mHitGround && transform.position.y > 5.25f)) {
-			//Debug.Log ("valid");
 			transform.position += velocity;
 		} else if (mHitGround && mGround.distance - 0.25f < -velocity.y) {
-			//Debug.Log ("adjust");
 			transform.position += new Vector3 (velocity.x, 0.26f - mGround.distance, velocity.z);
 		} else if (!mHitGround && transform.position.y < 5f) {
-			//Debug.Log ("reposition");
 			transform.position = new Vector3 (transform.position.x, mBaseOffset + Terrain.activeTerrain.SampleHeight (transform.position) + 0.5f, transform.position.z);
 		}
+
 	}
 
 	public static float ClampAngle (float angle) {

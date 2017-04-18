@@ -51,20 +51,24 @@ public class AgentCreature : MonoBehaviour {
 		mHornAttacking = false;
 	}
 
-	void OnTriggerEnter(Collider other) {
-		Debug.Log ("sonydb: Hit somebody");
-		if (other.tag == "Player" && !mTargets.Contains(other.gameObject)) {
+	/*
+	void OnTriggerEnter(Collider col) {
+		//col.gameObject.SendMessage ("Stun", 5f, SendMessageOptions.DontRequireReceiver);
+		if (col.tag != "Terrain" &&
+			!mTargets.Contains(col.gameObject)) {
+			Debug.Log ("sonydb: Monster Hit " + col.name);
 			//Debug.Log ("sonydb: Add " + other.name);
-			mTargets.Add (other.gameObject);
+			mTargets.Add (col.gameObject);
 		}
 	}
 
-	void OnTriggerStay(Collider other) {
+	void OnTriggerStay(Collider col) {
 		//Debug.Log ("sonydb: something hit");
 	}
 
-	void OnTriggerExit(Collider other) {
+	void OnTriggerExit(Collider col) {
 	}
+	*/
 
 	float GetSpeed() {
 		if (mNavMeshAgent != null) {
