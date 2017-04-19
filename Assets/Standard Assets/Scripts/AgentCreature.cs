@@ -87,12 +87,12 @@ public class AgentCreature : MonoBehaviour {
 			case State.idle:
 				//Debug.Log ("sonydb: Idling..");
 				if (Time.time - mTimer > MaxStateDuration) {
-					if (mTargets.Count <= 0 || Random.Range (0f, 1f) > 0.5f) {
+					if (mTargets.Count > 0 || Random.Range (0f, 1f) > 1f) {
 						// Switch to Walk
 						mTimer = Time.time;
 						mState = State.walk;
 						mNavMeshAgent.SetDestination (transform.position + new Vector3 (Random.Range (-50f, 50f), 0f, Random.Range (-50f, 50f)));
-					} else {
+					} else if (false) {
 						if (mCurrentTarget >= mTargets.Count) {
 							mCurrentTarget = Random.Range (0, mTargets.Count);
 						}

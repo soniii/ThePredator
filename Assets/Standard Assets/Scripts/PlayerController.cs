@@ -20,11 +20,15 @@ public class PlayerController : MonoBehaviour {
 	public float mTurnSensitivity = 15f;
 	public float mBaseOffset = 0.25f;
 
+	public GameObject mArrowObject = null;
+	public Transform mBowObject;
+
 	// Private
 	private Rigidbody mRigidBody;
 
 	private Transform mCameraAnchor;
 	private Vector3 mBottomAnchor;
+	private Transform mBow;
 
 	private Vector3 mForwardVelocity;
 	private Vector3 mCurrentDirection;
@@ -39,6 +43,7 @@ public class PlayerController : MonoBehaviour {
 	private bool mIsGrounded;
 	private float mJumpVelocity;
 	private float mStunned;
+	private float mFireCooldown;
 
 	// Collision count
 	private List<GameObject> mObstacles;
@@ -50,9 +55,9 @@ public class PlayerController : MonoBehaviour {
 	}
 
 	void OnTriggerEnter(Collider col) {
-		Debug.Log ("sonydb: Player hit " + col.transform.root.name);
+		//Debug.Log ("sonydb: Player hit " + col.transform.root.name);
 		if (col.gameObject.tag != "Terrain" && !mObstacles.Contains (col.gameObject)) {
-			Debug.Log ("sonydb: new one");
+			//Debug.Log ("sonydb: new one");
 		}
 		/*
 		if (col.tag != "Terrain" && !mObstacles.Contains(col.gameObject)) {
@@ -74,6 +79,12 @@ public class PlayerController : MonoBehaviour {
 		*/
 	}
 
+	void FireArrow() {
+		if (mBow != null && mArrowObject != null) {
+			GameObject newArrow = (GameObject)Instantiate (mArrowObject, mBow.position, mCameraAnchor.rotation);
+		}
+	}
+
 	void Start () {
 		// Initialize
 		gameObject.tag = "Player";
@@ -82,6 +93,7 @@ public class PlayerController : MonoBehaviour {
 
 		mCameraAnchor = transform.Find ("CameraAnchor");
 		mBottomAnchor = transform.position + new Vector3(0f, -mBaseOffset, 0f);
+		mBow = mBowObject != null ? mBowObject : transform.Find ("Bow");
 
 		mForwardVelocity = transform.forward;
 		mCurrentDirection = transform.forward;
@@ -95,6 +107,8 @@ public class PlayerController : MonoBehaviour {
 
 		mIsGrounded = false;
 		mJumpVelocity = 0f;
+		mStunned = 0f;
+		mFireCooldown = 0f;
 
 		mObstacles = new List<GameObject> ();
 	}
@@ -113,6 +127,13 @@ public class PlayerController : MonoBehaviour {
 		mCameraAnchor.localRotation = mCameraRotation * yQuaternion;
 
 
+		////////////////////// ATTACK ////////////////////////
+		if (Input.GetMouseButtonDown (0) && mFireCooldown <= Time.time) {
+			FireArrow ();
+			mFireCooldown = Time.time + 0.5f;
+		}
+
+		////////////////////// MOVEMENT //////////////////////
 		mRight = Vector3.Cross (transform.up, transform.forward).normalized;
 		mForward = transform.forward;
 		RaycastHit mGround;
@@ -121,7 +142,7 @@ public class PlayerController : MonoBehaviour {
 		if (mHitGround) {
 			mRight = Vector3.Cross (mGround.normal, transform.forward).normalized;
 			mForward = Vector3.Cross (mRight, mGround.normal).normalized;
-			if (mGround.distance > 0.25f && mGround.distance < 0.6f) {
+			if (mGround.distance > 0.25f && mGround.distance < 0.31f) {
 				mIsGrounded = true;
 			} else {
 				mIsGrounded = false;
@@ -132,6 +153,7 @@ public class PlayerController : MonoBehaviour {
 
 		Debug.DrawRay (mBottomAnchor, Vector3.down * 5f, Color.red);
 
+		// Only allow movement control when grounded.
 		if (mIsGrounded && mStunned <= 0f) {
 			mJumpVelocity = 0f;
 			mForwardVelocity = new Vector3 (0f, 0f, 0f);
