@@ -7,6 +7,7 @@ TagManager:
   - Player
   - Monster
   - Terrain
+  - Bow
   layers:
   - Default
   - TransparentFX

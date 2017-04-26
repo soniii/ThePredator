@@ -1,6 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
+using VR = UnityEngine.VR;
 
 //Player Character Behaviors:
 //- Player can rotate camera and move forward, backward, left, and right.
