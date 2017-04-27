@@ -68,7 +68,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000011495315488}
   m_LocalRotation: {x: -0.5, y: -0.5, z: 0.5, w: 0.5}
-  m_LocalPosition: {x: -0.102, y: 0, z: 0}
+  m_LocalPosition: {x: -0.102, y: 0, z: 0.844}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 90}
   m_Children:
@@ -82,7 +82,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1000010109998144}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 232.528, y: 2.137, z: 96.375046}
+  m_LocalPosition: {x: 189.47913, y: 0.56, z: 86.68686}
   m_LocalScale: {x: 2.5, y: 2.5, z: 1.5}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_Children:
@@ -164,7 +164,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.05, y: 0.05, z: 1.69}
-  m_Center: {x: 0, y: 0, z: -0.03}
+  m_Center: {x: 0, y: 0, z: 0.85}
 --- !u!114 &114000011966709634
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -179,4 +179,3 @@ MonoBehaviour:
   explosionObject: {fileID: 1000010597460764, guid: da960ccb4cdc17940b20c2246f9d9262,
     type: 2}
   mSpeed: 50
-  mInFlight: 0

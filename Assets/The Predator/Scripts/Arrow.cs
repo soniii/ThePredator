@@ -6,7 +6,9 @@ public class Arrow : MonoBehaviour {
 	public GameObject explosionObject;
 	public float mSpeed = 100f;
 
-	public bool mInFlight;
+	private bool mInFlight;
+	private GameObject mGrabBox;
+	private float mCurrentSpeed;
 
 	// Private
 	private RaycastHit mHit;
@@ -25,15 +27,36 @@ public class Arrow : MonoBehaviour {
 		}
 	}
 
+
+	void AttachToString(GameObject grabBox) {
+		mGrabBox = grabBox;
+	}
+
+	void Shoot() {
+		mGrabBox = null;
+		mInFlight = true;
+		mCurrentSpeed = mSpeed;
+	}
+
+	void Fall() {
+		mInFlight = true;
+		mCurrentSpeed = 0f;
+	}
+
 	// Use this for initialization
 	void Start () {
-		mInFlight = true;
+		mInFlight = false;
+		mCurrentSpeed = 0f;
 	}
 	
 	// Update is called once per frame
 	void Update () {
+		if (mGrabBox != null) {
+			transform.rotation = mGrabBox.transform.rotation;
+		}
+
 		if (mInFlight) {
-			Vector3 nextPosition = transform.position + (transform.forward * mSpeed + Vector3.down * 10f * Time.deltaTime) * Time.deltaTime;
+			Vector3 nextPosition = transform.position + (transform.forward * mCurrentSpeed + Vector3.down * 10f * Time.deltaTime) * Time.deltaTime;
 
 			if (Physics.Raycast (transform.position, transform.forward, out mHit, 5f)) {
 				if ((mHit.collider.tag == "Terrain" || mHit.collider.tag == "Monster") &&
