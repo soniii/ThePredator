@@ -4,7 +4,7 @@ using System.Collections;
 public class Arrow : MonoBehaviour {
 
 	public GameObject explosionObject;
-	public float mSpeed = 100f;
+	public float mSpeed = 50f;
 
 	private bool mInFlight;
 	private GameObject mGrabBox;
@@ -32,10 +32,10 @@ public class Arrow : MonoBehaviour {
 		mGrabBox = grabBox;
 	}
 
-	void Shoot() {
+	void Shoot(float force) {
 		mGrabBox = null;
 		mInFlight = true;
-		mCurrentSpeed = mSpeed;
+		mCurrentSpeed = mSpeed * force;
 	}
 
 	void Fall() {

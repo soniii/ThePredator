@@ -10,6 +10,7 @@ using UnityEngine.Events;
 public class PlayerRightHand : MonoBehaviour {
 
 	public GameObject mArrowObject;
+	public Transform mBowCenter;
 
 	private GameObject mStringGrabBox;
 	private GameObject mCurrentArrow;
@@ -46,7 +47,7 @@ public class PlayerRightHand : MonoBehaviour {
 	}
 
 	void ShootArrow () {
-		mCurrentArrow.SendMessage ("Shoot");
+		mCurrentArrow.SendMessage ("Shoot", (mBowCenter.position - mStringGrabBox.transform.position).magnitude);
 		mStringGrabBox.SendMessage ("ReleaseHandGrab");
 		mCurrentArrow.transform.SetParent (null);
 		mCurrentArrow = null;
@@ -79,7 +80,8 @@ public class PlayerRightHand : MonoBehaviour {
 			}
 		} else if (OVRInput.GetUp (OVRInput.RawButton.RIndexTrigger)) {
 			if (mHoldingString &&
-			    mCurrentArrow != null) {
+			    mCurrentArrow != null &&
+				mBowCenter != null) {
 				ShootArrow ();
 			} else if (mCurrentArrow != null) {
 				DropArrow ();
